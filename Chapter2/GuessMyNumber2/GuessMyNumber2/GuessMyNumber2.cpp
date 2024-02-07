@@ -1,31 +1,19 @@
-#include <iostream>
-#include <string>
-#include <sstream>
+#include "guess_my_number.h"
 
-using std::cout;
-using std::cerr;
-using std::cin;
-using std::endl;
-using std::string;
-using std::stringstream;
-
-
-void err(string s)
+func_status rnd_between(int lower, int upper, int &res)
 {
-    cerr << "ERROR: " << s << endl;
-    exit(1);
-}
-
-int rnd_between(int lower, int upper)
-{
-    if (upper <= lower)
+    if (upper < lower)
     {
         stringstream msg;
         msg << "upper (" << upper << ") in equal or less than lower (" << lower << ")";
-        err(msg.str());
+        return(FUNC_ERR);
     }
-    int r = rand() % (upper - lower) + lower;
-    return r;
+    if (upper == lower) {
+        res = upper;
+        return FUNC_OK;
+    }
+    res = rand() % (upper - lower) + lower;
+    return FUNC_OK;
 }
 
 enum guessRes { GUESS_TOO_LOW = 1, GUESS_TOO_HIGH, GUESS_OK, GUESS_INITIAL };
@@ -49,16 +37,21 @@ void guess(int low, int high)
 
     while (responce != GUESS_OK)
     {
-        int g = rnd_between(low, high);
-        responce = ask_user(g);
+        int rnd_res;
+        func_status g = rnd_between(low, high, rnd_res);
+        if (g == FUNC_ERR) {
+            cerr << "rnd_between returned error";
+            exit(1);
+        }
+        responce = ask_user(rnd_res);
 
         switch (responce)
         {
         case GUESS_TOO_HIGH:
-            high = g - 1;
+            high = rnd_res - 1;
             break;
         case GUESS_TOO_LOW:
-            low = g + 1;
+            low = rnd_res + 1;
             break;
         case GUESS_OK:
             break;
@@ -67,12 +60,4 @@ void guess(int low, int high)
             break;
         }
     }
-}
-
-int main()
-{
-    srand(time(0));
-    int low = 0, high = 100;
-
-    guess(low, high);
 }
